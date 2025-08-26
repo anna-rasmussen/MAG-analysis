@@ -14,14 +14,15 @@ For processing metagenomes to MAGs, I generally use a computing cluster that use
 In the vast majority of cases, the code in this repository is taken directly from tutorials on the various bioinformatics tools and programs and relies heavily on the great documentation accompanying said tools. I highly recommend looking at the tutorials and documentation for all of the following (and of course if you use these tools cite them!):
 
 + [MetaWRAP](https://github.com/bxlab/metaWRAP/tree/master)
++ [GTDB-Tk](https://ecogenomics.github.io/GTDBTk/)
++ [dRep](https://github.com/MrOlm/drep)
++ [checkM](https://ecogenomics.github.io/CheckM/)
 + [bowtie2](https://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 + [Samtools](https://www.htslib.org/)
 + [Seqtk](https://github.com/lh3/seqtk)
-+ [GTDB-Tk](https://ecogenomics.github.io/GTDBTk/)
-+ [dRep](https://github.com/MrOlm/drep)
-+ [kofam_scan](https://www.genome.jp/ftp/tools/kofam_scan/)
 + [CoverM](https://github.com/wwood/CoverM)
 + [InStrain](https://instrain.readthedocs.io/en/latest/index.html)
++ [kofam_scan](https://www.genome.jp/ftp/tools/kofam_scan/)
 + [phyloseq](https://joey711.github.io/phyloseq/)
 + [vegan](https://github.com/vegandevs/vegan)
 + [anvi'o](https://anvio.org/)
