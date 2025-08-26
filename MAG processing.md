@@ -13,30 +13,25 @@ conda activate /PATH/TO/CONDAENV/drep
 dRep dereplicate drep98_MAGs_ALL -g MAGs_all/*fa --ignoreGenomeQuality -sa 0.98
 ```
 
+I then move the dereplicated MAGs into one directory. I do this because I am going to also rename the contig names and I highly recommend keeping the original and the renamed contig versions of MAGs.
+
+```bash
+mkdir MAGs_all_drep98
+scp drep98_MAGs_ALL/dereplicated_genomes/*fa MAGs_all_drep98
+
+cd MAGs_all_drep98
+ls -1|wc -l #count number of files in a directory
+for f in *.fa; do sed -i "s/^>/>${f%.*}_/" "$f"; done #add the bin name to the contig name without the .fa
+
+cd ..
+cat MAGs_all_drep98/*fa > MAGs_all_drep98.fasta #make a concatenated fasta of all the MAG sequences
+```
+
 ## Taxonomic classification
 
 We use the GTDB-tk and install it using conda.
 
-
-### MAG quality
-
-Since we have refined the MAGs we have also generally renamed and consolidated the MAGs into 1 directory so the metawrap stats files are not always usable. Generally we use checkM to calculate the completeness, contamination, GC, length, etc. I have used checkM directly or also used metawrap because I like the output files (takes WAY longer but again I like the output format)
-
-checkM example
-
-metawrap example
-
-
-
-### Lineage abundance
-
-We generally refer to the representative non-redundant MAGs in our dataset as "lineages" but I have seen other terms in the literature such as species, operational taxonomic units (OTUs), 
-
-
-##############
-
-
-
+```bash
 conda activate /PATH/TO/CONDAENV/gtdbtk-2.4.0
 
 cat > GTDB.sh
@@ -53,13 +48,23 @@ cat > GTDB.sh
 #################
 source /PATH/TO/USER/.bashrc
 conda activate /PATH/TO/CONDAENV/gtdbtk-2.4.0
-mags_dir='/PATH/TO/SAMPLE/MAGs_coas_final_renamed'
-gtdbtk classify_wf --cpus 16 --skip_ani_screen --genome_dir $mags_dir -x fa --out_dir gtdb_MAGs_coas_final_renamed
+mags_dir='/PATH/TO/SAMPLE/MAGs_all'
+gtdbtk classify_wf --cpus 16 --skip_ani_screen --genome_dir $mags_dir -x fa --out_dir gtdb_MAGs_all
 
 mags_dir='/PATH/TO/SAMPLE/ERM2_2017Sep27_15-40/BIN_REFINEMENT_FINAL/metawrap_50_10_bins'
 gtdbtk classify_wf --cpus 16 --skip_ani_screen --genome_dir $mags_dir -x fa --out_dir gtdb_22
 
+```
 
+### MAG quality
+
+Since we have refined the MAGs we have also generally renamed and consolidated the MAGs into 1 directory so the metawrap stats files are not always usable. Generally we use checkM to calculate the completeness, contamination, GC, length, etc. I have used checkM directly or also used metawrap because I like the output files (takes WAY longer but again I like the output format)
+
+checkM example
+
+metawrap example
+
+```bash
 cat > checkM.sh
 #!/bin/bash 
 ################# 
@@ -72,73 +77,25 @@ cat > checkM.sh
 #SBATCH --time=4-00:00:00
 ################# 
 source /PATH/TO/USER/.bashrc
-conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
+conda activate /PATH/TO/CONDAENV/metawrap
 
-bin_dir='/PATH/TO/SAMPLE/MAGs_coas_final_renamed' 
-metawrap bin_refinement -o checkM_MAGs_coas_final_renamed -t 8 -m 256 -A $bin_dir -c 50 -x 10 
+bin_dir='/PATH/TO/SAMPLE/MAGs_all' 
+metawrap bin_refinement -o checkM_MAGs_all -t 8 -m 256 -A $bin_dir -c 50 -x 10 
+```
 
-bin_dir='/PATH/TO/SAMPLE/ERM2_2017Sep27_15-40/BIN_REFINEMENT_FINAL/metawrap_50_10_bins' 
-metawrap bin_refinement -o checkM_22 -t 8 -m 256 -A $bin_dir -c 50 -x 10 
+### Lineage abundance
 
+We generally refer to the representative non-redundant MAGs in our dataset as "lineages" but I have seen other terms in the literature such as species, operational taxonomic units (OTUs), 
 
-##########################################################
-Getting all the MAGs organized for read mapping
-##########################################################
- 
-#1 move the dereplicated MAGs into one folder
-################################
-mkdir MAGs_ER171819_drep98_contigsrenamed
-scp drep98_MAGs_ALL_renamed/dereplicated_genomes/*fa MAGs_ER171819_drep98_contigsrenamed
-
-#count number of files in a directory
-ls -1|wc -l
-
-#2 add the file name to the contig names
-################################
-cd MAGs_ER171819_drep98_contigsrenamed/
-for f in *.fa; do sed -i "s/^>/>${f%.*}_/" "$f"; done
-# the %.* after the f removes the file extension so names look nicer
-
-#3 make a single fasta file
-################################
-cat MAGs_ER171819_drep98_contigsrenamed/*fa > MAGs_ER171819_drep98_contigsrenamed.fasta
-
-#4 get scaffold to bin file for mapping
-################################
-# Next we need to create a scaffold-to-bin file. This can easily be done using the 
-# script parse_stb.py that comes with the program dRep:
-
-conda activate /PATH/TO/CONDAENV/drep-3.2.2
-
-parse_stb.py --reverse -f MAGs_ER171819_drep98_contigsrenamed/* -o MAGs_ER171819_drep98_contigsrenamed_scaffold_to_bin_file.stb
-
-
-#5 call genes (can be done on bins or combined file)
-################################
-conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
-
-cat > prodigal.sh
-
-#!/bin/bash 
-################# 
-#SBATCH --job-name=prodigal
-#SBATCH --out=logs/sl-prodigal-%j.out
-#SBATCH --partition=PARTITION
-#SBATCH --mem=8G
-#SBATCH -n 16
-#SBATCH --time=04:00:00
-################# 
-
-prodigal -i MAGs_ER171819_drep98_contigsrenamed.fasta -o MAGs_ER171819_drep98_contigsrenamed.gene.coord.gff -a MAGs_ER171819_drep98_contigsrenamed.proteins.faa -d MAGs_ER171819_drep98_contigsrenamed.gene.fna -m -p single -f gff
-
-scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/MAGs_ER171819_drep98_contigsrenamed.proteins.faa /Users/annarasmussen/Documents/EastRiver/coassemblies_ANR_floodplainER
 
 #6 bowtie2 to recruit reads!
 ################################
 
+```bash
 conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
+```bash
 
-
+```bash
 conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
 
 cat > bowtie2build.sh
@@ -152,10 +109,10 @@ cat > bowtie2build.sh
 #SBATCH --time=12:00:00
 ################# 
 #### Mapping to genome database
-bowtie2-build MAGs_ER171819_drep98_contigsrenamed.fasta MAGs_ER171819_drep98_contigsrenamed.fasta.bt2 --large-index --threads 24 
+bowtie2-build MAGs_all_drep98.fasta MAGs_all_drep98.fasta.bt2 --large-index --threads 24 
 echo done
-
-
+```
+```bash
 ################################
 SLURM ARRAY
 ################################
@@ -203,12 +160,14 @@ echo start
 bash /PATH/TO/SAMPLE/bowtie2.sh ${SLURM_ARRAY_TASK_ID}
 
 echo done
-
+```
 
 ###
-
+```bash
 sbatch --dependency=afterany:65546339 bowtie2_slurm.sh 
+```bash
 
+```bash
 ################################
 SCRIPT
 ################################
@@ -220,10 +179,11 @@ sample=$(sed -n "${arrayid}p" /PATH/TO/SAMPLE/sample_array_all.txt)
 
 echo $sample
 
-bowtie2 -q -p 24 -x MAGs_ER171819_drep98_contigsrenamed.fasta.bt2 -1 fastq_coassembled/${sample}_1.fastq -2 fastq_coassembled/${sample}_2.fastq -S MAGs_ER171819_drep98_contigsrenamed_${sample}.sam
+bowtie2 -q -p 24 -x MAGs_all_drep98.fasta.bt2 -1 fastq_coassembled/${sample}_1.fastq -2 fastq_coassembled/${sample}_2.fastq -S MAGs_all_drep98_${sample}.sam
 
 echo finished
-
+```
+```bash
 ####### OUTPUT for bowtie read mapping #######
 cd logs
 cat sl-bowtie2-13* > bowtie2_ER171819_output.txt
@@ -239,49 +199,9 @@ NUM=5
 awk -v NUM=$NUM 'NR % NUM == 0' input > output
 
 sed -n '0~5p' oldfile > newfile
+```bash
 
-###################################################################
-7. MAG abundance
-###################################################################
-
-
-###############################################
-#### Move files to personal computer for R ####
-###############################################
-
-scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
-scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*RVT2*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
-scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*RVTP2*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
-
-
-
-################
-#### Redo coverM for 3 samples that have EOF errors ####
-################
-
-## SAMPLES TO RERUN
-5
-13
-15
-
-##example output file for one with error
-start
-PTT1_JUN19_120cm
-[2024-09-09T19:33:27Z INFO  coverm] CoverM version 0.4.0
-[2024-09-09T19:33:27Z INFO  coverm] Using min-covered-fraction 0%
-[W::bam_hdr_read] EOF marker is absent. The input is probably truncated
-[2024-09-09T19:36:29Z INFO  coverm::genome] Of 1868812 reference IDs, 1868812 were assigned to a genome and 0 were not
-[2024-09-09T19:36:30Z INFO  coverm::genome] In sample 'MAGs_ER171819_drep98_contigsrenamed_PTT1_JUN19_120cm.sorted', found 1808575 reads mapped out of 1882078 total (96.09%)
-finished
-done
-
-##example of what inStrain runs
-samtools view -S -@ 8 -b Instrain/MAGs_ER171819_drep98_contigsrenamed_PTT1_OCT19_120cm.sam > Instrain/MAGs_ER171819_drep98_contigsrenamed_PTT1_OCT19_120cm.bam
-samtools sort Instrain/MAGs_ER171819_drep98_contigsrenamed_PTT1_OCT19_120cm.bam -o Instrain/MAGs_ER171819_drep98_contigsrenamed_PTT1_OCT19_120cm.sorted.bam -@ 8
-
-
-#### Rerun samtools to get sorted bam files ####
-
+```bash
 cat > samtools_slurm.sh 
 #!/bin/bash
 
@@ -327,9 +247,9 @@ echo start
 bash /PATH/TO/SAMPLE/samtools.sh ${SLURM_ARRAY_TASK_ID}
 
 echo done
+```
 
-
-
+```bash
 cat > samtools.sh
 arrayid=$(($1 + 1))
 
@@ -337,23 +257,19 @@ sample=$(sed -n "${arrayid}p" /PATH/TO/SAMPLE/sample_array_all.txt)
 
 echo $sample
 
-##samtools view -S -@ 12 -b Instrain/MAGs_ER171819_drep98_contigsrenamed_${sample}.sam > Instrain/MAGs_ER171819_drep98_contigsrenamed_${sample}.bam
-##samtools sort Instrain/MAGs_ER171819_drep98_contigsrenamed_${sample}.bam -o Instrain/MAGs_ER171819_drep98_contigsrenamed_${sample}.sorted.bam -@ 12
-samtools view -S -@ 12 -b MAGs_ER171819_drep98_contigsrenamed_${sample}.sam > MAGs_ER171819_drep98_contigsrenamed_${sample}.bam
-samtools sort MAGs_ER171819_drep98_contigsrenamed_${sample}.bam -o MAGs_ER171819_drep98_contigsrenamed_${sample}.sorted.bam -@ 12
+##samtools view -S -@ 12 -b Instrain/MAGs_all_drep98_${sample}.sam > Instrain/MAGs_all_drep98_${sample}.bam
+##samtools sort Instrain/MAGs_all_drep98_${sample}.bam -o Instrain/MAGs_all_drep98_${sample}.sorted.bam -@ 12
+samtools view -S -@ 12 -b MAGs_all_drep98_${sample}.sam > MAGs_all_drep98_${sample}.bam
+samtools sort MAGs_all_drep98_${sample}.bam -o MAGs_all_drep98_${sample}.sorted.bam -@ 12
 
 echo finished
+```
 
-
+```bash
 sbatch --dependency=aftercorr:65546396 samtools_slurm.sh
+```
 
-scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/*coverm_output.txt /Users/annarasmussen/Documents/EastRiver/coassemblies_ANR_floodplainER/coverM/
-
-
-#2 coverM 
-################################
-# works much faster than inStrain for getting abundance
-
+```bash
 cat > coverm_slurm.sh 
 #!/bin/bash
 
@@ -399,10 +315,10 @@ echo start
 bash /PATH/TO/SAMPLE/coverm.sh ${SLURM_ARRAY_TASK_ID}
 
 echo done
+```
 
 
-
-
+```bash
 cat > coverm.sh
 arrayid=$(($1 + 1))
 
@@ -410,38 +326,43 @@ sample=$(sed -n "${arrayid}p" /PATH/TO/SAMPLE/sample_array_all.txt)
 
 echo $sample
 
-coverm genome --bam-files MAGs_ER171819_drep98_contigsrenamed_${sample}.sorted.bam --genome-fasta-directory MAGs_ER171819_drep98_contigsrenamed --genome-fasta-extension fa -m count mean covered_fraction length -t 12 --min-covered-fraction 0 > ${sample}_coverm_output.txt
+coverm genome --bam-files MAGs_all_drep98_${sample}.sorted.bam --genome-fasta-directory MAGs_all_drep98 --genome-fasta-extension fa -m count mean covered_fraction length -t 12 --min-covered-fraction 0 > ${sample}_coverm_output.txt
 
 echo finished
 
 sbatch --dependency=aftercorr:65546443 coverm_slurm.sh
+```
 
+## Gene annotation
 
-###################################################################
-8. Move specific MAGs to a folder using while and txt document with the names of MAGs you want
-###################################################################
+I have used a variety of different methods for gene annotation. Generally the first step is making the gene calls, I use prodigal which is installed with MetaWRAP. You could also call a prodigal environemnt if you have installed it separately.
 
+```bash
+conda activate /PATH/TO/CONDAENV/metawrap
+
+prodigal -i MAGs_all_drep98.fasta -o MAGs_all_drep98.gene.coord.gff -a MAGs_all_drep98.proteins.faa -d MAGs_all_drep98.gene.fna -m -p single -f gff
+
+```
+
+### *Moving specific MAGs* 
+
+I often want to move just a subset of MAGs (usually based on their taxonomy) to a directory all on their own. I am a big fan of using *while*.
+
+```bash
 while IFS= read -r file
 do
-    scp -i -- /PATH/TO/SAMPLE/Riverton_refined_bins_manual/MAGs_drep98/dereplicated_genomes/"$file".fa /PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs/
-done </PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs.txt
+    scp -i -- /PATH/TO/SAMPLE/MAGs_all_drep98/"$file".fa /PATH/TO/SAMPLE/Subset_of_MAGs/
+done </PATH/TO/SAMPLE/Subset_of_MAGs_names.txt
+```
 
+### *stb file* 
+```bash
+#4 get scaffold to bin file for mapping
+################################
+# Next we need to create a scaffold-to-bin file. This can easily be done using the 
+# script parse_stb.py that comes with the program dRep:
 
-while IFS= read -r file
-do
-    scp -i -- /PATH/TO/SAMPLE/Riverton_refined_bins_manual/MAGs_2015_ALL_refined_manual/"$file".fa /PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs_2015/
-done </PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs_2015.txt
+conda activate /PATH/TO/CONDAENV/drep
 
-
-while IFS= read -r file
-do
-    scp -i -- /PATH/TO/SAMPLE/Riverton_refined_bins_manual/MAGs_2019_ALL_refined_manual/"$file".fa /PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs_2019/
-done </PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs_2019.txt
-
-while IFS= read -r file
-do
-    scp -i -- /PATH/TO/SAMPLE/Riverton_initial_binning/MAGs_2017_ALL_refined/"$file".fa /PATH/TO/SAMPLE/Riverton_initial_binning/Nitrifier_MAGs_2017/
-done </PATH/TO/SAMPLE/Riverton_initial_binning/Nitrifier_MAGs_2017.txt
-
-
-
+parse_stb.py --reverse -f MAGs_all_drep98/* -o MAGs_all_drep98_scaffold_to_bin_file.stb
+```
