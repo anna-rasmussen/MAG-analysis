@@ -3,33 +3,17 @@
 ### Overview
 There are several things we do with our MAGs once we generate them, including calculating their quality, classifying them taxonomically, annotating the genes in them, identifying redundant MAGs, and calculating "abundance" or coverage of MAGs in different metagenome samples.
 
-### Generate a non-redundant MAG dataset
+## Generate a non-redundant MAG dataset
 
 I generally prefer to use an average nucleotide identity cutoff of 98% (see InStrain documentation for some discussion on cutoffs)
 
+```bash
+conda activate /PATH/TO/CONDAENV/drep
 
-conda activate /home/groups/caf/drep-3.2.2
+dRep dereplicate drep98_MAGs_ALL -g MAGs_all/*fa --ignoreGenomeQuality -sa 0.98
+```
 
-cat > drep.sh
-
-#!/bin/bash 
-################# 
-#SBATCH --job-name=drep98
-#SBATCH --out=logs/sl-drep98-%j.out
-#SBATCH --partition=serc
-#SBATCH --mem=96G
-#SBATCH --cores=12
-#SBATCH --time=1-00:00:00
-################# 
-source /home/users/arasmuss/.bashrc
-conda activate /home/groups/caf/drep-3.2.2
-dRep dereplicate drep98_MAGs_ALL_renamed -g MAGs_coas_final_renamed/*fa --ignoreGenomeQuality -sa 0.98
-
-## 562 after dereplication (w/o 13 or 22)
-## 606 MAGs w/ 13
-
-
-### Taxonomic classification
+## Taxonomic classification
 
 We use the GTDB-tk and install it using conda.
 
@@ -53,7 +37,7 @@ We generally refer to the representative non-redundant MAGs in our dataset as "l
 
 
 
-conda activate /home/groups/caf/gtdbtk-2.4.0
+conda activate /PATH/TO/CONDAENV/gtdbtk-2.4.0
 
 cat > GTDB.sh
 
@@ -61,18 +45,18 @@ cat > GTDB.sh
 #################
 #SBATCH --job-name=GTDB2
 #SBATCH --out=logs/sl-gtdb-%j.out
-#SBATCH --partition=serc
+#SBATCH --partition=PARTITION
 #SBATCH --cpus-per-task=16
 #SBATCH --mem-per-cpu=8gb
 ##SBATCH --time=24:00:00
 #SBATCH --time=4:00:00
 #################
-source /home/users/arasmuss/.bashrc
-conda activate /home/groups/caf/gtdbtk-2.4.0
-mags_dir='/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/MAGs_coas_final_renamed'
+source /PATH/TO/USER/.bashrc
+conda activate /PATH/TO/CONDAENV/gtdbtk-2.4.0
+mags_dir='/PATH/TO/SAMPLE/MAGs_coas_final_renamed'
 gtdbtk classify_wf --cpus 16 --skip_ani_screen --genome_dir $mags_dir -x fa --out_dir gtdb_MAGs_coas_final_renamed
 
-mags_dir='/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/ERM2_2017Sep27_15-40/BIN_REFINEMENT_FINAL/metawrap_50_10_bins'
+mags_dir='/PATH/TO/SAMPLE/ERM2_2017Sep27_15-40/BIN_REFINEMENT_FINAL/metawrap_50_10_bins'
 gtdbtk classify_wf --cpus 16 --skip_ani_screen --genome_dir $mags_dir -x fa --out_dir gtdb_22
 
 
@@ -81,19 +65,19 @@ cat > checkM.sh
 ################# 
 #SBATCH --job-name=checkM
 #SBATCH --out=logs/sl-checkM—%j.out
-#SBATCH --partition=serc
+#SBATCH --partition=PARTITION
 #SBATCH -n 8
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=16gb
 #SBATCH --time=4-00:00:00
 ################# 
-source /home/users/arasmuss/.bashrc
-conda activate /home/groups/caf/metawrap-1.3.2
+source /PATH/TO/USER/.bashrc
+conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
 
-bin_dir='/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/MAGs_coas_final_renamed' 
+bin_dir='/PATH/TO/SAMPLE/MAGs_coas_final_renamed' 
 metawrap bin_refinement -o checkM_MAGs_coas_final_renamed -t 8 -m 256 -A $bin_dir -c 50 -x 10 
 
-bin_dir='/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/ERM2_2017Sep27_15-40/BIN_REFINEMENT_FINAL/metawrap_50_10_bins' 
+bin_dir='/PATH/TO/SAMPLE/ERM2_2017Sep27_15-40/BIN_REFINEMENT_FINAL/metawrap_50_10_bins' 
 metawrap bin_refinement -o checkM_22 -t 8 -m 256 -A $bin_dir -c 50 -x 10 
 
 
@@ -124,14 +108,14 @@ cat MAGs_ER171819_drep98_contigsrenamed/*fa > MAGs_ER171819_drep98_contigsrename
 # Next we need to create a scaffold-to-bin file. This can easily be done using the 
 # script parse_stb.py that comes with the program dRep:
 
-conda activate /home/groups/caf/drep-3.2.2
+conda activate /PATH/TO/CONDAENV/drep-3.2.2
 
 parse_stb.py --reverse -f MAGs_ER171819_drep98_contigsrenamed/* -o MAGs_ER171819_drep98_contigsrenamed_scaffold_to_bin_file.stb
 
 
 #5 call genes (can be done on bins or combined file)
 ################################
-conda activate /home/groups/caf/metawrap-1.3.2
+conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
 
 cat > prodigal.sh
 
@@ -139,7 +123,7 @@ cat > prodigal.sh
 ################# 
 #SBATCH --job-name=prodigal
 #SBATCH --out=logs/sl-prodigal-%j.out
-#SBATCH --partition=serc
+#SBATCH --partition=PARTITION
 #SBATCH --mem=8G
 #SBATCH -n 16
 #SBATCH --time=04:00:00
@@ -147,22 +131,22 @@ cat > prodigal.sh
 
 prodigal -i MAGs_ER171819_drep98_contigsrenamed.fasta -o MAGs_ER171819_drep98_contigsrenamed.gene.coord.gff -a MAGs_ER171819_drep98_contigsrenamed.proteins.faa -d MAGs_ER171819_drep98_contigsrenamed.gene.fna -m -p single -f gff
 
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/MAGs_ER171819_drep98_contigsrenamed.proteins.faa /Users/annarasmussen/Documents/EastRiver/coassemblies_ANR_floodplainER
+scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/MAGs_ER171819_drep98_contigsrenamed.proteins.faa /Users/annarasmussen/Documents/EastRiver/coassemblies_ANR_floodplainER
 
 #6 bowtie2 to recruit reads!
 ################################
 
-conda activate /home/groups/caf/metawrap-1.3.2
+conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
 
 
-conda activate /home/groups/caf/metawrap-1.3.2
+conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
 
 cat > bowtie2build.sh
 #!/bin/bash 
 ################# 
 #SBATCH --job-name=bowtiebuild
 #SBATCH --out=logs/sl-bowtie2-build-%j.out
-#SBATCH --partition=serc
+#SBATCH --partition=PARTITION
 #SBATCH --mem=72G
 #SBATCH -n 24
 #SBATCH --time=12:00:00
@@ -196,19 +180,19 @@ cat > bowtie2_slurm.sh
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=1gb
 #SBATCH --time=0-06:00:00 #will use much less time probably
-#SBATCH --partition=serc
+#SBATCH --partition=PARTITION
 
 # Logs
 #SBATCH --output=logs/sl-bowtie2-13-%j.out
-#SBATCH --mail-user=arasmuss@stanford.edu
+#SBATCH --mail-user=EMAIL@EMAIL.EMAIL
 #SBATCH --mail-type=BEGIN,END,FAIL
 
 # Environment
 ##SBATCH --export=ALL
 #SBATCH --array=0-23
 
-source /home/users/arasmuss/.bashrc
-conda activate /home/groups/caf/metawrap-1.3.2
+source /PATH/TO/USER/.bashrc
+conda activate /PATH/TO/CONDAENV/metawrap-1.3.2
 
 #  Show list of CPUs you ran on
 echo $SLURM_JOB_NODELIST
@@ -216,7 +200,7 @@ echo ${SLURM_ARRAY_TASK_ID}
 
 echo start
 
-bash /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/bowtie2.sh ${SLURM_ARRAY_TASK_ID}
+bash /PATH/TO/SAMPLE/bowtie2.sh ${SLURM_ARRAY_TASK_ID}
 
 echo done
 
@@ -232,7 +216,7 @@ SCRIPT
 cat > bowtie2.sh 
 arrayid=$(($1 + 1))
 
-sample=$(sed -n "${arrayid}p" /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/sample_array_all.txt)
+sample=$(sed -n "${arrayid}p" /PATH/TO/SAMPLE/sample_array_all.txt)
 
 echo $sample
 
@@ -265,9 +249,9 @@ sed -n '0~5p' oldfile > newfile
 #### Move files to personal computer for R ####
 ###############################################
 
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*RVT2*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*RVTP2*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
+scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
+scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*RVT2*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
+scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/Riverton_refined_bins_manual/Instrain/MAGs_ER171819_drep98_contigsrenamed_*.IS/output/*RVTP2*IS_genome_info.tsv /Users/annarasmussen/Documents/Riverton/data/Instrain/
 
 
 
@@ -318,11 +302,11 @@ cat > samtools_slurm.sh
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2gb
 #SBATCH --time=0-1:00:00
-#SBATCH --partition=serc
+#SBATCH --partition=PARTITION
 
 # Logs
 #SBATCH --output=logs/sl-samtools-13-%j.out
-#SBATCH --mail-user=arasmuss@stanford.edu
+#SBATCH --mail-user=EMAIL@EMAIL.EMAIL
 #SBATCH --mail-type=BEGIN,END,FAIL
 
 # Environment
@@ -330,8 +314,8 @@ cat > samtools_slurm.sh
 
 ##SBATCH --array=0-67
 #SBATCH --array=0-23
-source /home/users/arasmuss/.bashrc
-conda activate /home/groups/caf/instrain-env
+source /PATH/TO/USER/.bashrc
+conda activate /PATH/TO/CONDAENV/instrain-env
 ml python/3.6.1
 
 #  Show list of CPUs you ran on
@@ -340,7 +324,7 @@ echo ${SLURM_ARRAY_TASK_ID}
 
 echo start
 
-bash /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/samtools.sh ${SLURM_ARRAY_TASK_ID}
+bash /PATH/TO/SAMPLE/samtools.sh ${SLURM_ARRAY_TASK_ID}
 
 echo done
 
@@ -349,7 +333,7 @@ echo done
 cat > samtools.sh
 arrayid=$(($1 + 1))
 
-sample=$(sed -n "${arrayid}p" /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/sample_array_all.txt)
+sample=$(sed -n "${arrayid}p" /PATH/TO/SAMPLE/sample_array_all.txt)
 
 echo $sample
 
@@ -363,7 +347,7 @@ echo finished
 
 sbatch --dependency=aftercorr:65546396 samtools_slurm.sh
 
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/*coverm_output.txt /Users/annarasmussen/Documents/EastRiver/coassemblies_ANR_floodplainER/coverM/
+scp -r arasmuss@login.sherlock.stanford.edu:/PATH/TO/SAMPLE/*coverm_output.txt /Users/annarasmussen/Documents/EastRiver/coassemblies_ANR_floodplainER/coverM/
 
 
 #2 coverM 
@@ -390,11 +374,11 @@ cat > coverm_slurm.sh
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2gb
 #SBATCH --time=0-00:15:00
-#SBATCH --partition=serc
+#SBATCH --partition=PARTITION
 
 # Logs
 #SBATCH --output=logs/sl-coverM-13-%j.out
-#SBATCH --mail-user=arasmuss@stanford.edu
+#SBATCH --mail-user=EMAIL@EMAIL.EMAIL
 #SBATCH --mail-type=BEGIN,END,FAIL
 
 # Environment
@@ -402,8 +386,8 @@ cat > coverm_slurm.sh
 
 
 #SBATCH --array=0-23
-source /home/users/arasmuss/.bashrc
-conda activate /home/groups/caf/coverm-0.4.0
+source /PATH/TO/USER/.bashrc
+conda activate /PATH/TO/CONDAENV/coverm-0.4.0
 ml python/3.6.1
 
 #  Show list of CPUs you ran on
@@ -412,7 +396,7 @@ echo ${SLURM_ARRAY_TASK_ID}
 
 echo start
 
-bash /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/coverm.sh ${SLURM_ARRAY_TASK_ID}
+bash /PATH/TO/SAMPLE/coverm.sh ${SLURM_ARRAY_TASK_ID}
 
 echo done
 
@@ -422,7 +406,7 @@ echo done
 cat > coverm.sh
 arrayid=$(($1 + 1))
 
-sample=$(sed -n "${arrayid}p" /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/sample_array_all.txt)
+sample=$(sed -n "${arrayid}p" /PATH/TO/SAMPLE/sample_array_all.txt)
 
 echo $sample
 
@@ -433,56 +417,31 @@ echo finished
 sbatch --dependency=aftercorr:65546443 coverm_slurm.sh
 
 
-###############################################
-#### Move files to personal computer for R ####
-###############################################
-
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/*coverm_output.txt /Users/annarasmussen/Documents/Riverton/data/Instrain/
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/*coverm_output.txt /Users/annarasmussen/Documents/EastRiver/coassemblies_ANR_floodplainER/coverM
-
-
-
 ###################################################################
 8. Move specific MAGs to a folder using while and txt document with the names of MAGs you want
 ###################################################################
 
 while IFS= read -r file
 do
-    cp -i -- /Users/annarasmussen/Documents/SlateRiver/MAGs_ANR_2019/MAGs_ER171819_drep98_contigsrenamed/"$file".fa /Users/annarasmussen/Documents/SlateRiver/MAGs_ANR_2019/MAGs_ER171819_drep98_contigsrenamed/unclassified_MAGs/
-done </Users/annarasmussen/Documents/SlateRiver/MAGs_ANR_2019/MAGs_reseq_drep98_BORG/unclassified_MAGs.txt
+    scp -i -- /PATH/TO/SAMPLE/Riverton_refined_bins_manual/MAGs_drep98/dereplicated_genomes/"$file".fa /PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs/
+done </PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs.txt
 
 
 while IFS= read -r file
 do
-    scp -i -- /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/MAGs_drep98/dereplicated_genomes/"$file".fa /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs/
-done </scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs.txt
-
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs.proteins.faa /Users/annarasmussen/Documents/Riverton/data/
-
-didn't finish maybe...
-41
+    scp -i -- /PATH/TO/SAMPLE/Riverton_refined_bins_manual/MAGs_2015_ALL_refined_manual/"$file".fa /PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs_2015/
+done </PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs_2015.txt
 
 
 while IFS= read -r file
 do
-    scp -i -- /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/MAGs_2015_ALL_refined_manual/"$file".fa /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs_2015/
-done </scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs_2015.txt
-
-
-while IFS= read -r file
-do
-    scp -i -- /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/MAGs_2019_ALL_refined_manual/"$file".fa /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs_2019/
-done </scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs_2019.txt
+    scp -i -- /PATH/TO/SAMPLE/Riverton_refined_bins_manual/MAGs_2019_ALL_refined_manual/"$file".fa /PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs_2019/
+done </PATH/TO/SAMPLE/Riverton_refined_bins_manual/Nitrifier_MAGs_2019.txt
 
 while IFS= read -r file
 do
-    scp -i -- /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_initial_binning/MAGs_2017_ALL_refined/"$file".fa /scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_initial_binning/Nitrifier_MAGs_2017/
-done </scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_initial_binning/Nitrifier_MAGs_2017.txt
+    scp -i -- /PATH/TO/SAMPLE/Riverton_initial_binning/MAGs_2017_ALL_refined/"$file".fa /PATH/TO/SAMPLE/Riverton_initial_binning/Nitrifier_MAGs_2017/
+done </PATH/TO/SAMPLE/Riverton_initial_binning/Nitrifier_MAGs_2017.txt
 
 
-
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs_20*.proteins.faa /Users/annarasmussen/Documents/Riverton/data/
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_refined_bins_manual/Nitrifier_MAGs.proteins.faa /Users/annarasmussen/Documents/Riverton/data/
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Riverton_initial_binning/Nitrifier_MAGs_20*.proteins.faa /Users/annarasmussen/Documents/Riverton/data/
-scp -r arasmuss@login.sherlock.stanford.edu:/scratch/users/arasmuss/Metagenomes/EastRiver/coassemblies/Nitrifiers/* /Users/annarasmussen/Documents/Riverton/data/Nitrifiers_ALL
 

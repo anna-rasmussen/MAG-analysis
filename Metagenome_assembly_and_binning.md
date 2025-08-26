@@ -102,13 +102,17 @@ while IFS= read -r dir; do mkdir -p "$dir"; done <sample_array.txt
 ```
 
 ### 2.2: Assemble
-If you aren't using arrays just follow the [MetaWRAP tutorial](https://github.com/bxlab/metaWRAP/blob/master/Usage_tutorial.md)- it is excellent! Your assembly command will look something like:
+If you aren't using arrays just follow the [MetaWRAP tutorial](https://github.com/bxlab/metaWRAP/blob/master/Usage_tutorial.md)- it is excellent! 
+
+I use conda environments, and without needing a slurm script the basic assembly command will look something like:
 
 ```bash
+conda activate /PATH/TO/CONDAENV/metawrap
+
 metawrap assembly -1 /PATH/TO/MY_SAMPLING_SITE/fastq/SAMPLE_1_1.fastq -2 /PATH/TO/MY_SAMPLING_SITE/fastq/SAMPLE_1_2.fastq -m 384 -t 8 --megahit -o SAMPLE_1/assembly_SAMPLE_1
 ```
 
-If you use a slurm based job manager and want to use arrays, this is an example of what my slurm submission script looks like:
+This is an example of what my slurm submission script looks like:
 
 ```bash
 cat > assembly_slurm.sh
