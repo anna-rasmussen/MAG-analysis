@@ -35,7 +35,7 @@ SAMPLE_3
 mkdir logs
 ```
 
-### *1.1: Download metagenomes*
+### 1.1: Download metagenomes
 
 I generally analyze metagenomes sequenced through JGI. I download the filtered metagenome reads that JGI has removed contamination from instead of 'Raw Data' metagenome files. I use Globus to download the metagenomes. I usually work with many metagenomes and download the entire "Filtered_Raw_Date" directory for each metagnome that includes additional report files. This ulitmately leads to a separate folder for each metagenome containing several files, the metagenome fastq files generally are named something like:
 
@@ -55,7 +55,7 @@ mv 52690.2.420404.TTGCGAAG-TTGCGAAG.filter-METAGENOME.fastq SAMPLE_1.fastq.gz #s
 
 If you have a better way to rename multiple files using something other than mv, go for it!
 
-### *1.2: Separate metagenome files into forward and reverse reads*
+### 1.2: Separate metagenome files into forward and reverse reads
 
 Example of how we separate the forward and reverse reads from the JGI-generated metagenomes.
 
@@ -65,7 +65,7 @@ for g in *.gz; do gunzip $g; done #unzip files if need be
 for i in *.fastq; do paste - - - - < "$i" | tee >(awk 'BEGIN{FS="\t"; OFS="\n"} {if (match($1, " 1:N")) print $1,$2,$3,$4}' > "$i"_1.fastq ) | awk 'BEGIN{FS="\t"; OFS="\n"} {if (match($1, " 2:N")) print $1,$2,$3,$4}' > "$i"_2.fastq; done
 ```
 
-### Side note: Renaming files
+### *Side note: Renaming files*
 
 Sometimes I haven't renamed the JGI files and need to fix ugly files names. Always good to plan ahead but just in case, here is an example using rename
 
@@ -93,7 +93,7 @@ file.rename(file, paste(rm[1], "_",rm[2],"_",rm[3],"_",rm[6], ".fastq", sep= "")
 
 I typically assemble individual samples. However, depending on how successfully/deeply samples were sequenced, if we sequenced the same sample multiple times, or if we are targeting low-abundance organisms I will coassemble multiple samples together. See coassembly subsection.
 
-#### *2.1: Prepare more directories to work in*
+### 2.1: Prepare more directories to work in
 
 I like to make a directory for each sample with the sample names I will use throughought the rest of the pipeline.
 
@@ -101,7 +101,7 @@ I like to make a directory for each sample with the sample names I will use thro
 while IFS= read -r dir; do mkdir -p "$dir"; done <sample_array.txt
 ```
 
-#### *2.2: Assemble*
+### 2.2: Assemble
 If you aren't using arrays just follow the [MetaWRAP tutorial](https://github.com/bxlab/metaWRAP/blob/master/Usage_tutorial.md)- it is excellent! Your assembly command will look something like:
 
 ```bash
@@ -169,7 +169,7 @@ echo finished
 ```
 
 
-### *Coassembly*
+### *Coassembling metagenomes*
 
 We tend to know enough about our samples to decide which samples are appropriate to coassemble. However, [sourmash](https://sourmash.readthedocs.io/en/latest/) could be used if you need more input deciding which samples have similar enough communities to reasonably coassemble.
 
