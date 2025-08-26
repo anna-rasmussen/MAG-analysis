@@ -6,12 +6,12 @@ This repository contains descriptions and examples of code used to carry out dif
 + metagenome assembly and binning
 + metagenome-assembled genome (MAG) processing
 + microbial community analysis
-+ genomic analysis.
++ genomic analysis
 
-The code I use for processing the metagenomes to MAGs is generally written as slurm submission scripts and uses a variety of tools that are predominantly python-based. I generally use bash and R for some data wrangling. Once I have output files (any kind of csv or txt files with data), I do most analysis and visualizing in R. I use some specialized software for gene alignments and phylogenies.
+For processing metagenomes to MAGs, I generally use a computing cluster that uses slurm for script submission and I use conda environments for several different bioinformatics tools. I generally use bash and R for data wrangling. Once I have output files (any kind of csv or txt files with data), I do most analysis and visualizing in R. I use some specialized software for gene alignments and phylogenies.
 
 ### Tools
-In the vast majority of cases, the code here is taken directly from tutorials on the various bioinformatics tools and programs and relies heavily on the great documentation accompanying said tools. I highly recommend looking at the tutorials and documentation for all of the following (and of course if you use these tools cite them!):
+In the vast majority of cases, the code in this repository is taken directly from tutorials on the various bioinformatics tools and programs and relies heavily on the great documentation accompanying said tools. I highly recommend looking at the tutorials and documentation for all of the following (and of course if you use these tools cite them!):
 
 + [MetaWRAP](https://github.com/bxlab/metaWRAP/tree/master)
 + [bowtie2](https://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
