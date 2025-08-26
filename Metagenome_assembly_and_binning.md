@@ -58,7 +58,7 @@ If you have a better way to rename multiple files using something other than mv,
 
 ### 1.2: Separate metagenome files into forward and reverse reads
 
-Example of how we separate the forward and reverse reads from the JGI-generated metagenomes.
+Example of how I separate the forward and reverse reads from the JGI-generated metagenomes.
 
 ```bash
 for g in *.gz; do gunzip $g; done #unzip files if need be
@@ -90,13 +90,13 @@ file.rename(file, paste(rm[1], "_",rm[2],"_",rm[3],"_",rm[6], ".fastq", sep= "")
 ```
 
 
-## Step 2: Assemble and/or coassemble
+## Step 2: Assemble metagenomes
 
-I typically assemble individual samples. However, depending on how successfully/deeply samples were sequenced, if we sequenced the same sample multiple times, or if we are targeting low-abundance organisms I will coassemble multiple samples together. See coassembly subsection.
+I typically assemble individual metagenemoe samples. However, depending on how successfully/deeply samples were sequenced, if we sequenced the same sample multiple times, or if we are targeting low-abundance organisms I will coassemble multiple samples together (*Coassembling metagenomes* subsection). I have also subset metagenomes to recover high coverage microbes (*Assembling subset metagenomes* subsection).
 
 ### 2.1: Prepare more directories to work in
 
-I like to make a directory for each sample with the sample names I will use throughought the rest of the pipeline.
+I like to make a directory for each sample with the sample names I will use throughout the rest of the pipeline.
 
 ```
 while IFS= read -r dir; do mkdir -p "$dir"; done <sample_array.txt
@@ -105,7 +105,7 @@ while IFS= read -r dir; do mkdir -p "$dir"; done <sample_array.txt
 ### 2.2: Assemble
 If you aren't using arrays just follow the [MetaWRAP tutorial](https://github.com/bxlab/metaWRAP/blob/master/Usage_tutorial.md)- it is excellent! 
 
-I use conda environments, and without needing a slurm script the basic assembly command will look something like:
+I use *conda* environments and without the slurm parts of the script the basic assembly command will look something like:
 
 ```bash
 conda activate /PATH/TO/CONDAENV/metawrap
@@ -157,7 +157,7 @@ echo done
 
 ```
 
-And here is the actual script for running the metawrap assembly pipeline
+And here is the actual script for running the metawrap assembly pipeline:
 
 ```bash
 cat > assembly.sh 
@@ -231,6 +231,23 @@ cat Sample_co1/*_1.fastq > Sample_co1_1.fastq
 cat Sample_co2/*_1.fastq > Sample_co2_1.fastq
 cat Sample_co1/*_2.fastq > Sample_co1_2.fastq
 cat Sample_co2/*_2.fastq > Sample_co2_2.fastq
+```
+
+### *Assembling subset metagenomes*
+
+In my dissertation work, I wanted to recover a MAG for a very highly abundant organism so ended up sub-setting the metagenomes before assembly to decrease the coverage of the microbe. I used [Seqtk](https://github.com/lh3/seqtk) to make the subsets and then followed the assembly pipeline as outlined above for each subset metagenome. 
+
+There is definitely a faster way to do this but at the time I calculated 1%, 5%, and 20% of the total reads and manually put the read counts in as follows:
+
+```bash
+/PATH/TO/CONDAENVS/seqtk/seqtk sample -s100 /PATH/TO/MY_SAMPLING_SITE/fastq/SAMPLE_1_1.fastq 2861519 > SAMPLE_1_sub01_1.fastq
+/PATH/TO/CONDAENVS/seqtk/seqtk sample -s100 /PATH/TO/MY_SAMPLING_SITE/fastq/SAMPLE_1_2.fastq 2861519 > SAMPLE_1_sub01_2.fastq
+
+/PATH/TO/CONDAENVS/seqtk/seqtk sample -s100 /PATH/TO/MY_SAMPLING_SITE/fastq/SAMPLE_1_1.fastq 14307595 > SAMPLE_1_sub05_1.fastq
+/PATH/TO/CONDAENVS/seqtk/seqtk sample -s100 /PATH/TO/MY_SAMPLING_SITE/fastq/SAMPLE_1_2.fastq 14307595 > SAMPLE_1_sub05_2.fastq
+
+/PATH/TO/CONDAENVS/seqtk/seqtk sample -s100 /PATH/TO/MY_SAMPLING_SITE/fastq/SAMPLE_1_1.fastq 57230382 > SAMPLE_1_sub20_1.fastq
+/PATH/TO/CONDAENVS/seqtk/seqtk sample -s100 /PATH/TO/MY_SAMPLING_SITE/fastq/SAMPLE_1_2.fastq 57230382 > SAMPLE_1_sub20_2.fastq
 ```
 
 
