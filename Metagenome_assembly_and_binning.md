@@ -1,7 +1,7 @@
 # Metagenome assembly and binning
 
 ### Overview
-This is an example of a metagenome assembly and binning pipeline through to refinement of metagenome-assembled genomes (MAGs) of medium to high quality. This pipeline uses primarily *bash* scripts and my favorite tool [MetaWRAP](https://github.com/bxlab/metaWRAP/tree/master) which has a great Github page and helpful tutorial. The code used here is based on the aforementioned [MetaWRAP tutorial](https://github.com/bxlab/metaWRAP/blob/master/Usage_tutorial.md) and edited to be used on a computing cluster with a [slurm workload manager](https://slurm.schedmd.com/documentation.html). Some data wrangling also uses *R*.
+This is an example of a metagenome assembly and binning pipeline through to refinement of metagenome-assembled genomes (MAGs) of medium- to high-quality based on [MIMAG](https://www-nature-com.stanford.idm.oclc.org/articles/nbt.3893#Tab1) standards. This pipeline uses primarily *bash* scripts and my favorite tool [MetaWRAP](https://github.com/bxlab/metaWRAP/tree/master) which has a great Github page and helpful tutorial. The code used here is based on the aforementioned [MetaWRAP tutorial](https://github.com/bxlab/metaWRAP/blob/master/Usage_tutorial.md) and edited to be used on a computing cluster with a [slurm workload manager](https://slurm.schedmd.com/documentation.html). Some data wrangling also uses *R*.
 
 Examples of publications using this (or some iteration of this) pipeline include:
 
@@ -19,12 +19,13 @@ Make a project directory.
 
 ```bash
 mkdir MY_SAMPLING_SITE
-cd MY_SAMPLING_SITE
 ```
 
 Make some files and directories in your main directory such as a list of sample names for use in arrays and a logs directory.
 
 ```bash
+cd MY_SAMPLING_SITE
+
 cat > sample_array.txt
 SAMPLE_1
 SAMPLE_2
