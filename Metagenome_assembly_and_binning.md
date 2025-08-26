@@ -1,8 +1,3 @@
----
-output:
-  html_document: default
-  pdf_document: default
----
 # Metagenome assembly and binning
 
 This is an example of a metagenome assembly and binning pipeline through to refinement of metagenome-assembled genomes (MAGs) of medium to high quality. This pipeline uses primarily *bash* scripts and my favorite tool [MetaWRAP](https://github.com/bxlab/metaWRAP/tree/master) which has a great Github page and helpful tutorial. The code used here is based on the aforementioned [MetaWRAP tutorial](https://github.com/bxlab/metaWRAP/blob/master/Usage_tutorial.md) and edited to be used on a computing cluster with a [slurm workload manager](https://slurm.schedmd.com/documentation.html). Some data wrangling also uses *R*.
