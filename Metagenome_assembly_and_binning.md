@@ -19,9 +19,10 @@ Make a project directory.
 
 ```bash
 mkdir MY_SAMPLING_SITE
+cd MY_SAMPLING_SITE
 ```
 
-Make a list of sample names for use in arrays.
+Make some files and directories in your main directory such as a list of sample names for use in arrays and a logs directory.
 
 ```bash
 cat > sample_array.txt
@@ -30,11 +31,13 @@ SAMPLE_2
 SAMPLE_3
 
 #Use Ctrl + d to exit
+
+mkdir logs
 ```
 
-#### *1.1: Download metagenomes*
+### *1.1: Download metagenomes*
 
-I generally analyze metagenomes sequenced through JGI. I download the filtered metagenome reads that JGI has removed contamination from instead of 'Raw Data' metagenome files. I use Globus to download the metagenomes.I am usually working with many metagenomes and download the entire "Filtered_Raw_Date" directory for each metagnome. This leads to a separate folder for each metagenome containing several files, the metagenome fastq files generally look something like:
+I generally analyze metagenomes sequenced through JGI. I download the filtered metagenome reads that JGI has removed contamination from instead of 'Raw Data' metagenome files. I use Globus to download the metagenomes. I usually work with many metagenomes and download the entire "Filtered_Raw_Date" directory for each metagnome that includes additional report files. This ulitmately leads to a separate folder for each metagenome containing several files, the metagenome fastq files generally are named something like:
 
 ```bash
 52690.2.420404.TTGCGAAG-TTGCGAAG.filter-METAGENOME.fastq.gz #example file name straight from JGI
@@ -50,10 +53,9 @@ cd fastq #move into the fastq directory
 mv 52690.2.420404.TTGCGAAG-TTGCGAAG.filter-METAGENOME.fastq SAMPLE_1.fastq.gz #start renaming files using mv
 ```
 
-If you come up with a better way to rename files other than mv, go for it!
+If you have a better way to rename multiple files using something other than mv, go for it!
 
-
-#### *1.2: Separate metagenome files into forward and reverse reads*
+### *1.2: Separate metagenome files into forward and reverse reads*
 
 Example of how we separate the forward and reverse reads from the JGI-generated metagenomes.
 
@@ -63,7 +65,7 @@ for g in *.gz; do gunzip $g; done #unzip files if need be
 for i in *.fastq; do paste - - - - < "$i" | tee >(awk 'BEGIN{FS="\t"; OFS="\n"} {if (match($1, " 1:N")) print $1,$2,$3,$4}' > "$i"_1.fastq ) | awk 'BEGIN{FS="\t"; OFS="\n"} {if (match($1, " 2:N")) print $1,$2,$3,$4}' > "$i"_2.fastq; done
 ```
 
-#### Side note: Renaming files
+### Side note: Renaming files
 
 Sometimes I haven't renamed the JGI files and need to fix ugly files names. Always good to plan ahead but just in case, here is an example using rename
 
@@ -93,7 +95,7 @@ I typically assemble individual samples. However, depending on how successfully/
 
 #### *2.1: Prepare more directories to work in*
 
-I like to make a directory for each sample.
+I like to make a directory for each sample with the sample names I will use throughought the rest of the pipeline.
 
 ```
 while IFS= read -r dir; do mkdir -p "$dir"; done <sample_array.txt
@@ -169,18 +171,69 @@ echo finished
 
 ### *Coassembly*
 
-We tend to know enough about our samples to decide which samples are appropriate to coassemble. However, *sourmash* could be used if you need more input deciding which samples have similar enough communities to reasonably co-assemble.
+We tend to know enough about our samples to decide which samples are appropriate to coassemble. However, [sourmash](https://sourmash.readthedocs.io/en/latest/) could be used if you need more input deciding which samples have similar enough communities to reasonably coassemble.
 
-First, I concatenate the appropriate *.fastq* files. I often do this by making symbolic links of the *.fastq* files I want to concatenate in a directory that I name using the same new concatenated file name I want to use. I also make a new sample array with the new names and edit my scripts as appropriate.
+First, I concatenate the appropriate *.fastq* files. My general approach is to make a new set of directories that have the new, coassembled sample names and then move the *.fastq* files I want to concatenate in the appropriate new sample directory. I also make a new sample array with the new names and edit my scripts as appropriate. Once I have the concatenated *.fastq* files I will start my coassembly. Note, if *.fastq* files are too large, sometimes co-assemblies are not possible with our computing resources.
 
-Then we coassemble which uses more compute. If *.fastq* files are too large, sometimes co-assemblies are not possible with our computing resources.
+Below is some text with examples from moving *.fastq* files for samples sequenced in triplicate into new folders.
+
+```bash
+cat > sample_array_coassemblies.txt #new sample array
+SAMPLE_co1
+SAMPLE_co2
+
+
+cat > forwardfastq.txt #make a guide for moving files where you want them, I usually make in R w/ metagenome metadata
+file_name1;Sample_coassembly
+52481.2.358586.ATGGAAGG-ATGGAAGG_1.fastq;SAMPLE_co1
+52481.2.358586.TCAAGGAC-TCAAGGAC_1.fastq;SAMPLE_co1
+52481.2.358586.GATTACCG-GATTACCG_1.fastq;SAMPLE_co1
+52481.2.358586.GTCTGATC-GTCTGATC_1.fastq;SAMPLE_co2
+52481.2.358586.AATACGCG-AATACGCG_1.fastq;SAMPLE_co2
+52481.2.358586.CGACGTTA-CGACGTTA_1.fastq;SAMPLE_co2
+
+cat > reversefastq.txt #make a guide for moving files where you want them, I usually make in R w/ metagenome metadata
+file_name1;Sample_coassembly
+52481.2.358586.ATGGAAGG-ATGGAAGG_2.fastq;SAMPLE_co1
+52481.2.358586.TCAAGGAC-TCAAGGAC_2.fastq;SAMPLE_co1
+52481.2.358586.GATTACCG-GATTACCG_2.fastq;SAMPLE_co1
+52481.2.358586.GTCTGATC-GTCTGATC_2.fastq;SAMPLE_co2
+52481.2.358586.AATACGCG-AATACGCG_2.fastq;SAMPLE_co2
+52481.2.358586.CGACGTTA-CGACGTTA_2.fastq;SAMPLE_co2
+
+#make the new directories
+while IFS= read -r dir; do mkdir -p "$dir"; done <sample_array_coassemblies.txt
+
+#move the forward reads into the appropriate sample directory
+cat forwardfastq.txt |
+while read line; do
+  IFS=';'
+  set - $line
+  mv $1 $2/
+done
+
+#move the reverse reads into the appropriate sample directory
+cat reversefastq.txt |
+while read line; do
+  IFS=';'
+  set - $line
+  mv $1 $2/
+done
+
+#concatenate the forward and reverse fastq files
+
+cat Sample_co1/*_1.fastq > Sample_co1_1.fastq
+cat Sample_co2/*_1.fastq > Sample_co2_1.fastq
+cat Sample_co1/*_2.fastq > Sample_co1_2.fastq
+cat Sample_co2/*_2.fastq > Sample_co2_2.fastq
+```
 
 
 ## Step 3: Bin
 
-I bin using all 3 binners available in *metawrap binning* and generally use multiple fastq files to calculate coverage information. I have done both single sample binning and binning with multiple *.fastq* files and at times have done both.
+I bin using all 3 binners available in *metawrap binning* and generally use multiple *.fastq* files to calculate coverage information. I have done both single sample binning and binning with multiple *.fastq* files and at times have done both.
 
-Make symbolic links of appropriate *.fastq* files in every sample directory or main directory
+You can set the path for the *.fastq* files directly to the fastq directory or make symbolic links in every sample directory to point to the fastq directory as shown below:
 
 ```bash
 for dir in SAMPLE*/; do mkdir -- "$dir/fastq"; done
@@ -209,11 +262,13 @@ sbatch --dependency=aftercorr:65324457 init_binning_slurm.sh #number is job numb
 ```
 
 ### *Coassembly binning*
-I usually use all of the individual sample *.fastq* files to calculate coverage for binning rather than the concatenated fastq file.
+I usually use all of the individual sample *.fastq* files to calculate coverage for binning rather than the concatenated *.fastq* file. I also often increase the minimum contig length to 2500 or 3000 to help get better quality bins and speed up the binning process.
 
 ## Step 4: Refine bins
 
-In the step, we refine the bins to a finalized MAG dataset. This involves using the metawrap *metawrap bin_refinement* tool to combine redundant bins across the 3 binning algorithms (*Maxbin2*, *Metabat2*, *CONCOCT*) and filtering out bins based on *checkM*-calculated completeness and contamination thresholds. We generally choose < 10 % contamination and > 50% completeness.
+In the step, we refine the bins to a finalized MAG dataset. This involves using the *metawrap bin_refinement* tool to combine redundant bins across the 3 binning algorithms (*Maxbin2*, *Metabat2*, *CONCOCT*) and filtering out bins based on *checkM*-calculated completeness and contamination thresholds. We generally choose < 10 % contamination and > 50% completeness.
+
+Here is the script called upon by the slurm submission script.
 
 ```bash
 cat > bin_refinement.sh 
@@ -231,7 +286,7 @@ echo finished
 
 ### *Refining separate binning efforts for the same sample*
 
-I often try multiple binning efforts for the same sample depending on what we know about the sample or how well our first binning attempts went. For example, we have tried binning using just the sample fastq files and then decided to bin using multiple *.fastq* files or with different minimum contig lengths. Luckily, the *metabat bin_refinement* tool can be used to refine all the different bins for the same sample. 
+I often try multiple binning efforts for the same sample depending on what we know about the sample or how well our first binning attempts went. For example, we have tried binning using just the sample *.fastq* files and then decided to bin using multiple *.fastq* files or with different minimum contig lengths. Luckily, the *metabat bin_refinement* tool can be used to refine all the different bins for the same sample. 
 
 
 
@@ -249,7 +304,7 @@ echo $sample
 echo finished
 ```
 
-Rename the refined bins to include the sample name instead of just bin.1.fa to SAMPLE_1_bin_1.fa. This is a bit of a painful manual way depending on how many samples you have.
+Rename the refined bins to include the sample name instead of just bin.1.fa to SAMPLE_1_bin_1.fa. This is a bit of a painful, manual way depending on how many samples you have.
 
 ```bash
 cd SAMPLE_1/BIN_REFINEMENT/metawrap_50_10_bins/
@@ -266,4 +321,5 @@ mkdir MAGs_all
 scp SAMPLE*/BIN_REFINEMENT/metawrap_50_10_bins/*fa MAGs_all/
 ```
 
-Once I have all of the MAGs from all of the metagenomes together in one directory, I move onto analyzing the MAGs.
+Once I have all of the MAGs from all of the metagenomes together in one directory, I move onto analyzing the MAGs. See the MAG_processing.md for next steps!
+
