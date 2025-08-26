@@ -90,7 +90,7 @@ file.rename(file, paste(rm[1], "_",rm[2],"_",rm[3],"_",rm[6], ".fastq", sep= "")
 ```
 
 
-## Step 2: Assemble and/or co-assemble
+## Step 2: Assemble and/or coassemble
 
 I typically assemble individual samples. However, depending on how successfully/deeply samples were sequenced, if we sequenced the same sample multiple times, or if we are targeting low-abundance organisms I will coassemble multiple samples together. See coassembly subsection.
 
@@ -234,7 +234,7 @@ cat Sample_co2/*_2.fastq > Sample_co2_2.fastq
 ```
 
 
-## Step 3: Bin
+## Step 3: Initial binning
 
 I bin using all 3 binners available in *metawrap binning* and generally use multiple *.fastq* files to calculate coverage information. I have done both single sample binning and binning with multiple *.fastq* files and at times have done both.
 
