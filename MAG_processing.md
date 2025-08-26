@@ -5,7 +5,7 @@ Once I have generated a bunch of MAGs from metagenomes, I start generating metad
 
 I try to do all data wrangling in R and minimally process output files from each program.
 
-See Metagenome_assembly_and_binning.md for more details, but generally at this stage I have a "My_SAMPLING_SITE" directory that has the following:
+See Metagenome_assembly_and_binning.md for more details, but generally at this stage I have a "MY_SAMPLING_SITE" directory that has the following:
 + fastq (directory with metagenome forward and reverse fastq files)
 + MAGs_all (directory of all the MAGs from all the samples, renamed with sample included)
 + sample_array.txt (list of sample names)
@@ -40,9 +40,9 @@ cat MAGs_all_drep98/*fa > MAGs_all_drep98.fasta #make a concatenated fasta of al
 
 ## Taxonomic classification
 
-I use the GTDB-tk to classify MAGs. I generally classify all the MAGs I have generated because sometimes the representative MAG selected by drep is missing the functional genes I am most interested in and I want to dig into all the MAGs from a certain Genus or something.
+I use the GTDB-tk to classify MAGs. I generally classify all the MAGs I have generated because sometimes the representative MAG selected by drep is missing the functional genes I am most interested in and I want to dig into all the MAGs from a certain genus or something.
 
-Here is an example with the slurm commands included.
+Here is an example with the *slurm* commands included.
 
 ```bash
 cat > GTDB.sh
@@ -54,7 +54,6 @@ cat > GTDB.sh
 #SBATCH --partition=PARTITION
 #SBATCH --cpus-per-task=16
 #SBATCH --mem-per-cpu=8gb
-##SBATCH --time=24:00:00
 #SBATCH --time=4:00:00
 #################
 source /PATH/TO/USER/.bashrc
@@ -65,7 +64,7 @@ gtdbtk classify_wf --cpus 16 --skip_ani_screen --genome_dir $mags_dir -x fa --ou
 
 ```
 
-I then concatenate the 2 output files (1 for bacteria and archaea). Then in R, I do some data wrangling like separate the taxonomy columns. 
+I then concatenate the 2 output files (1 for bacteria and 1 for archaea). Then in R, I do some data wrangling like separate the taxonomy columns. 
 
 ```R
 gtdb <- read.csv("gtdb_output.txt", sep = "\t")
@@ -76,7 +75,7 @@ gtdb <- gtdb %>%
 
 ### MAG quality
 
-Since I have renamed and consolidated all of the MAGs into 1 directory, the lovely *metaWRAP* stats from the bin refinement step are more difficult to use for quickly getting quality information such as completeness, contamination, GC, length. I have taken the stat files from each sample and renamed the bins in the txt file before then concatenating them all but if you have a lot of samples that can be a lot to manage. Generally, I use [CheckM](https://ecogenomics.github.io/CheckM/) again on the consolidated MAG set for simplicity. I have used *checkM* directly or also used *metaWRAP* because I like the output files (takes WAY longer than just straight checkM but I like the output format)
+Since I have renamed and consolidated all of the MAGs into 1 directory, the lovely *metaWRAP* stats from the bin refinement step are more difficult to use for quickly getting quality information such as completeness, contamination, GC, length. I have taken the stat files from each sample and renamed the bins in the *.txt* file before then concatenating them all but if you have a lot of samples that can be a lot to manage. Generally, I use [CheckM](https://ecogenomics.github.io/CheckM/) again on the consolidated MAG set for simplicity. I have used *checkM* directly or also used *metaWRAP* because I like the output files (takes WAY longer than just straight *checkM* but I like the output format)
 
 Here is a *checkM* example:
 
@@ -158,12 +157,8 @@ bash /PATH/TO/MY_SAMPLING_SITE/bowtie2.sh ${SLURM_ARRAY_TASK_ID}
 echo done
 ```
 
-###
-```bash
-sbatch --dependency=afterany:65546339 bowtie2_slurm.sh #can submit using a dependency on the genome database step finishing
-```bash
 
-And here is the script that has the actual bowtie2 commands that the slurm script points to.
+And here is the script that has the actual *bowtie2* commands that the *slurm* script points to.
 
 ```bash
 cat > bowtie2.sh 
@@ -176,6 +171,10 @@ echo $sample
 bowtie2 -q -p 24 -x MAGs_all_drep98.fasta.bt2 -1 fastq/${sample}_1.fastq -2 fastq/${sample}_2.fastq -S MAGs_all_drep98_${sample}.sam
 
 echo finished
+```
+
+```bash
+sbatch --dependency=afterany:65546339 bowtie2_slurm.sh #can submit using a dependency on the genome database step finishing
 ```
 
 Then I often like to take the output from the *bowtie2* run to get read totals and % of reads recruited to the non-redundant MAG dataset. This takes some data wrangling.
@@ -192,7 +191,7 @@ awk 'NR%21==4||NR%21==5||NR%21==19' bowtie2_output_raw.txt > bowtie2_output.txt
 
 If I am using [CoverM](https://github.com/wwood/CoverM) to calculate coverage and metagenome reads recruited I then use [Samtools](https://www.htslib.org/) directly.
 
-To save space I have omitted the slurm submission scripts and only included the Samtools commands below:
+To save space I have omitted the *slurm* submission scripts and only included the *Samtools* commands below:
 
 ```bash
 conda activate /PATH/TO/CONDAENV/samtools
@@ -214,7 +213,7 @@ coverm genome --bam-files MAGs_all_drep98_${sample}.sorted.bam --genome-fasta-di
 
 ```
 
-Again, the dependency function is super helpful for submitting all these consecutive steps for each metagenome after the corresponding previous step finishes (bowtie2 to samtools to coverM)
+Again, the dependency function is super helpful for submitting all these consecutive steps for each metagenome after the corresponding previous step finishes (*bowtie2* to *samtools* to *coverM*)
 
 ```bash
 sbatch --dependency=aftercorr:65546396 coverm_slurm.sh
@@ -230,9 +229,9 @@ conda activate /PATH/TO/CONDAENV/drep
 parse_stb.py --reverse -f MAGs_all_drep98/* -o MAGs_all_drep98_scaffold_to_bin_file.stb
 ```
 
-To run inStrain I use the .sam files from each metagenomes (bowtie2 step), the concatenated fasta file of all the MAGs, the gene calls from the concatenated fasta file, and the stb file.
+To run *inStrain* I use the *.sam* files from each metagenomes (*bowtie2* step), the concatenated *fasta* file of all the MAGs, the gene calls from the concatenated *fasta* file, and the *stb* file.
 
-Again, I use a slurm array but have only included the inStrain commands below:
+Again, I use a *slurm* array but have only included the *inStrain* commands below:
 
 ```bash
 conda activate /PATH/TO/CONDAENVS/instrain-env
@@ -244,12 +243,12 @@ inStrain profile/PATH/TO/MY_SAMPLING_SITE/MAGs_all_drep98_${sample}.sam /PATH/TO
 
 There are a lot of great outputs and the plots are helpful. Can be very memory and compute intensive.
 
-There is also an inStrain compare function that I recommend looking into as a next step.
+There is also an *inStrain compare* function that I recommend looking into as a next step.
 
 
 ## Gene annotation
 
-I have used a variety of different methods for gene annotation. Generally, my first step is making the gene calls, using [Prodigal](https://github.com/hyattpd/Prodigal) (which is conveniently installed with MetaWRAP). You could also call a prodigal environemnt if you have installed it separately.
+I have used a variety of different methods for gene annotation. Generally, my first step is making the gene calls, using [Prodigal](https://github.com/hyattpd/Prodigal) (which is conveniently installed with MetaWRAP). You could also call a *prodigal* environemnt if you have installed it separately.
 
 ```bash
 conda activate /PATH/TO/CONDAENV/metawrap
@@ -258,7 +257,7 @@ prodigal -i MAGs_all_drep98.fasta -o MAGs_all_drep98.gene.coord.gff -a MAGs_all_
 
 ```
 
-Then I annotate the MAG gene calls using [kofam_scan](https://www.genome.jp/ftp/tools/kofam_scan/). Strongly recommend reading the documentation as it requires ruby, hmmsearch, and parallel. The installs of those programs are specified in the config file.
+Then I annotate the MAG gene calls using [kofam_scan](https://www.genome.jp/ftp/tools/kofam_scan/). Strongly recommend reading the documentation as it requires *ruby*, *hmmsearch*, and *parallel*. The install locations of those programs are specified in the config file (except ruby).
 
 ```bash
 cat > config.yml
@@ -282,7 +281,7 @@ done
 
 ### Next steps
 
-Once I have all of the metadata for the MAGs (taxonomy, coverage, completeness, contamination, length, gene calls, gene annotations, etc) I get all of that data into R and start doing some data exploration and analysis. See the Community_analysis.md for how I use libraries like [phyloseq](https://joey711.github.io/phyloseq/) or the Genomic_analysis.md for how I use [anvi'o](https://anvio.org/). Both also have more examples of how I wrangle lots of data or visualize data in R but below are a few brief examples of how I get started.
+Once I have all of the metadata for the MAGs (taxonomy, coverage, completeness, contamination, length, gene calls, gene annotations, etc) I get all of that data into R and start doing some data exploration and analysis. See the *Community_analysis.md* for how I use libraries like [phyloseq](https://joey711.github.io/phyloseq/) or the *Genomic_analysis.md* for how I use [anvi'o](https://anvio.org/). Both also have more examples of how I wrangle lots of data or visualize data in *R* but below are a few brief examples of how I get started.
 
 
 #### *Wrangling all of the data in R* 
@@ -294,7 +293,7 @@ Here are just a few examples of how I start putting together all of the data. I 
 MAG.QC <- left_join(gtdb, checkM, by = "user_genome") #combine the gtdb and checkM outputs based on MAG names
 ```
 
-And import all of the coverM data from the *coverm_output.txt* files. I am often working with a lot of metagenomes
+And import all of the *coverM* data from the *coverm_output.txt* files. I am often working with a lot of metagenomes
 
 ```R
 sample.array <- read.csv("sample_array.txt", sep = "\t", header = FALSE)[-c(1),]#text file with all metagenome names
