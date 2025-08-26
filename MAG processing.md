@@ -1,30 +1,12 @@
 # Processing MAGs
 
+### Overview
 There are several things we do with our MAGs once we generate them, including calculating their quality, classifying them taxonomically, annotating the genes in them, identifying redundant MAGs, and calculating "abundance" or coverage of MAGs in different metagenome samples.
 
-### Taxonomic classification
+### Generate a non-redundant MAG dataset
 
-We use the GTDB-tk and install it using conda.
+I generally prefer to use an average nucleotide identity cutoff of 98% (see InStrain documentation for some discussion on cutoffs)
 
-
-### MAG quality
-
-Since we have refined the MAGs we have also generally renamed and consolidated the MAGs into 1 directory so the metawrap stats files are not always usable. Generally we use checkM to calculate the completeness, contamination, GC, length, etc. I have used checkM directly or also used metawrap because I like the output files (takes WAY longer but again I like the output format)
-
-checkM example
-
-metawrap example
-
-
-### non-redundant MAG dataset
-
-
-### Lineage abundance
-
-We generally refer to the representative non-redundant MAGs in our dataset as "lineages" but I have seen other terms in the literature such as species, operational taxonomic units (OTUs), 
-
-
-##############
 
 conda activate /home/groups/caf/drep-3.2.2
 
@@ -45,6 +27,31 @@ dRep dereplicate drep98_MAGs_ALL_renamed -g MAGs_coas_final_renamed/*fa --ignore
 
 ## 562 after dereplication (w/o 13 or 22)
 ## 606 MAGs w/ 13
+
+
+### Taxonomic classification
+
+We use the GTDB-tk and install it using conda.
+
+
+### MAG quality
+
+Since we have refined the MAGs we have also generally renamed and consolidated the MAGs into 1 directory so the metawrap stats files are not always usable. Generally we use checkM to calculate the completeness, contamination, GC, length, etc. I have used checkM directly or also used metawrap because I like the output files (takes WAY longer but again I like the output format)
+
+checkM example
+
+metawrap example
+
+
+
+### Lineage abundance
+
+We generally refer to the representative non-redundant MAGs in our dataset as "lineages" but I have seen other terms in the literature such as species, operational taxonomic units (OTUs), 
+
+
+##############
+
+
 
 conda activate /home/groups/caf/gtdbtk-2.4.0
 

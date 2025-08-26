@@ -1,7 +1,7 @@
 # MAG-analysis
 ### Genome-resolved metagenomic analysis pipeline 
 
-This repository contains descriptions and examples of code used to carry out different steps in genome-resolved metagenomics, including markdown files for: 
+This repository contains descriptions and examples of code that I have used to carry out different steps in genome-resolved metagenomics, including markdown files for: 
 + metagenome assembly and binning
 + metagenome-assembled genome (MAG) processing
 + microbial community analysis
