@@ -2,7 +2,11 @@
 
 ### Overview
 
-This repository contains descriptions and examples of code used to carry out different steps in genome-resolved metagenomics, including: metagenome assembly and binning, metagenome-assembled genome (MAG) processing, microbial community analysis, and genomic analysis.
+This repository contains descriptions and examples of code used to carry out different steps in genome-resolved metagenomics, including: 
++ metagenome assembly and binning
++ metagenome-assembled genome (MAG) processing
++ microbial community analysis
++ genomic analysis.
 
 The code I use for processing the metagenomes to MAGs is generally written as slurm submission scripts and uses a variety of tools that are predominantly python-based. I generally use bash and R for some data wrangling. Once I have output files (any kind of csv or txt files with data), I do most analysis and visualizing in R. I use some specialized software for gene alignments and phylogenies.
 
