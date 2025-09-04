@@ -343,5 +343,5 @@ mkdir MAGs_all
 scp SAMPLE*/BIN_REFINEMENT/metawrap_50_10_bins/*fa MAGs_all/
 ```
 
-Once I have all of the MAGs from all of the metagenomes together in one directory, I move onto analyzing the MAGs. See the MAG_processing.md for next steps!
+Once I have all of the MAGs from all of the metagenomes together in one directory, I move onto analyzing the MAGs. See the [MAG_processing.md](https://github.com/anna-rasmussen/MAG-analysis/blob/main/MAG_processing.md) for next steps!
 

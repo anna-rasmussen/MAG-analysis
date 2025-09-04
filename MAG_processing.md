@@ -5,7 +5,7 @@ Once I have generated a bunch of MAGs from metagenomes, I start generating metad
 
 I try to do all data wrangling in R and minimally process output files from each program.
 
-See Metagenome_assembly_and_binning.md for more details, but generally at this stage I have a "MY_SAMPLING_SITE" directory that has the following:
+See [Metagenome_assembly_and_binning.md](https://github.com/anna-rasmussen/MAG-analysis/blob/main/Metagenome_assembly_and_binning.md) for more details, but generally at this stage I have a "MY_SAMPLING_SITE" directory that has the following:
 + fastq (directory with metagenome forward and reverse fastq files)
 + MAGs_all (directory of all the MAGs from all the samples, renamed with sample included)
 + sample_array.txt (list of sample names)
@@ -14,7 +14,7 @@ See Metagenome_assembly_and_binning.md for more details, but generally at this s
 
 ## Generate a non-redundant MAG dataset
 
-I generally prefer to use an average nucleotide identity cutoff of 98%. The [inStrain](https://instrain.readthedocs.io/en/latest/important_concepts.html#picking-and-evaluating-representative-genomes) documentation has some very helpful discussion on cutoffs and creating a non-redundant dataset.
+I generally prefer to use an average nucleotide identity cutoff of 98%. The [inStrain](https://instrain.readthedocs.io/en/latest/important_concepts.html#picking-and-evaluating-representative-genomes) documentation has some very helpful discussion on cutoffs and creating a non-redundant MAG dataset.
 
 I use [dRep](https://github.com/MrOlm/drep) to pick representative genomes, which I usually refer to as lineages, but can be called species, species representatives, OTUs, etc. in the literature.
 
@@ -73,7 +73,7 @@ gtdb <- gtdb %>%
   separate(., classification2, c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = ";") 
 ```
 
-### MAG quality
+## MAG quality
 
 Since I have renamed and consolidated all of the MAGs into 1 directory, the lovely *metaWRAP* stats from the bin refinement step are more difficult to use for quickly getting quality information such as completeness, contamination, GC, length. I have taken the stat files from each sample and renamed the bins in the *.txt* file before then concatenating them all but if you have a lot of samples that can be a lot to manage. Generally, I use [CheckM](https://ecogenomics.github.io/CheckM/) again on the consolidated MAG set for simplicity. I have used *checkM* directly or also used *metaWRAP* because I like the output files (takes WAY longer than just straight *checkM* but I like the output format)
 
@@ -97,7 +97,7 @@ bin_dir='/PATH/TO/MY_SAMPLING_SITE/MAGs_all'
 metawrap bin_refinement -o checkM_MAGs_all -t 8 -m 256 -A $bin_dir -c 50 -x 10 
 ```
 
-### Lineage abundance
+## Lineage abundance
 
 Once I have a dereplicated or non-redundant MAG dataset, I like to calculate the abundance and coverage of MAGs in the metagenome samples I am working with. I have used both [CoverM](https://github.com/wwood/CoverM) and [InStrain](https://instrain.readthedocs.io/en/latest/index.html) at this step. There are many different tools/programs involved in this process, but generally the first step is to recruit the metagenome reads back to the non-redundant MAG dataset.
 
@@ -187,7 +187,7 @@ awk 'NR%21==4||NR%21==5||NR%21==19' bowtie2_output_raw.txt > bowtie2_output.txt
 
 #in a text editor, replace all \n with \t then replace sentence after read count with \n to get in nice format
 
-```bash
+```
 
 If I am using [CoverM](https://github.com/wwood/CoverM) to calculate coverage and metagenome reads recruited I then use [Samtools](https://www.htslib.org/) directly.
 
@@ -279,12 +279,12 @@ for genome in $(ls *.faa); do
 done
 ```
 
-### Next steps
+## Next steps
 
 Once I have all of the metadata for the MAGs (taxonomy, coverage, completeness, contamination, length, gene calls, gene annotations, etc) I get all of that data into R and start doing some data exploration and analysis. See the *Community_analysis.md* for how I use libraries like [phyloseq](https://joey711.github.io/phyloseq/) or the *Genomic_analysis.md* for how I use [anvi'o](https://anvio.org/). Both also have more examples of how I wrangle lots of data or visualize data in *R* but below are a few brief examples of how I get started.
 
 
-#### *Wrangling all of the data in R* 
+### *Wrangling all of the data in R* 
 
 Here are just a few examples of how I start putting together all of the data. I am usually working on the computing cluster for all of the data processing steps and then move the output files to my personal computer to work on.
 
@@ -326,7 +326,7 @@ coverM.dat.present <- coverM.dat %>%
   filter(covered.fraction >= 0.4) #only include MAGs with >= 40% genome coverage as "present" in a sample
 ```
 
-#### *Moving specific MAGs* 
+### *Moving specific MAGs* 
 
 Once I have taxonomic information or other quality data, I often want to move a subset of MAGs (usually the nitrifiers) to a directory all on their own. I am a big fan of using *while*.
 
