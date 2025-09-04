@@ -3,10 +3,10 @@
 ### Overview
 
 This repository contains descriptions and examples of code used to carry out different steps in genome-resolved metagenomics, including: 
-+ metagenome assembly and binning
-+ metagenome-assembled genome (MAG) processing
-+ microbial community analysis
-+ genomic analysis
++ [metagenome assembly and binning](https://github.com/anna-rasmussen/MAG-analysis/blob/main/Metagenome_assembly_and_binning.md)
++ [metagenome-assembled genome (MAG) processing](https://github.com/anna-rasmussen/MAG-analysis/blob/main/MAG_processing.md)
++ [microbial community analysis](https://github.com/anna-rasmussen/MAG-analysis/blob/main/Community_analysis.md)
++ [genomic analysis](https://github.com/anna-rasmussen/MAG-analysis/blob/main/Genomic_analysis.md)
 
 For processing metagenomes to MAGs, I generally use a computing cluster that uses slurm for script submission and I use conda environments for several different bioinformatics tools. I generally use bash and R for data wrangling. Once I have output files (any kind of csv or txt files with data), I do most analysis and visualizing in R. I use some specialized software for gene alignments and phylogenies.
 
@@ -20,6 +20,7 @@ In the vast majority of cases, the code in this repository is taken directly fro
 + [bowtie2](https://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 + [Samtools](https://www.htslib.org/)
 + [Seqtk](https://github.com/lh3/seqtk)
++ [SeqKit](https://bioinf.shenwei.me/seqkit/)
 + [CoverM](https://github.com/wwood/CoverM)
 + [InStrain](https://instrain.readthedocs.io/en/latest/index.html)
 + [Prodigal](https://github.com/hyattpd/Prodigal)

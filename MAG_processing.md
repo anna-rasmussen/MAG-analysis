@@ -281,7 +281,7 @@ done
 
 ## Next steps
 
-Once I have all of the metadata for the MAGs (taxonomy, coverage, completeness, contamination, length, gene calls, gene annotations, etc) I get all of that data into R and start doing some data exploration and analysis. See the *Community_analysis.md* for how I use libraries like [phyloseq](https://joey711.github.io/phyloseq/) or the *Genomic_analysis.md* for how I use [anvi'o](https://anvio.org/). Both also have more examples of how I wrangle lots of data or visualize data in *R* but below are a few brief examples of how I get started.
+Once I have all of the metadata for the MAGs (taxonomy, coverage, completeness, contamination, length, gene calls, gene annotations, etc) I get all of that data into R and start doing some data exploration and analysis. See the [Community_analysis.md](https://github.com/anna-rasmussen/MAG-analysis/blob/main/Community_analysis.md) for how I use libraries like [phyloseq](https://joey711.github.io/phyloseq/) or the [Genomic_analysis.md](https://github.com/anna-rasmussen/MAG-analysis/blob/main/Genomic_analysis.md) for how I use [anvi'o](https://anvio.org/). Both also have more examples of how I wrangle lots of data or visualize data in *R* but below are a few brief examples of how I get started.
 
 
 ### *Wrangling all of the data in R* 

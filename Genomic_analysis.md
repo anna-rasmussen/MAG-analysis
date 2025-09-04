@@ -181,7 +181,7 @@ iqtree -s concatenated-proteins-Nitrosomonadaceae-clean.fa\
 
 I often want to get functional gene sequences to make alignments and phylogenies. I take several approaches depending on the data. Read all of the documentation on how to make a [pangenome](https://merenlab.org/2016/11/08/pangenomics-v2/).
 
-#### using *anvi'o*
+#### Using *anvi'o*
 
 If all of my genomes have been annotated via anvi'o, are in a pangenome, and I TRUST the anvi'o annotations then I will sometimes use *anvi'o * to pull out my favorite gene. For example, ammonia monoxygenase subunit A (*amoA*).
 
@@ -230,7 +230,7 @@ anvi-compute-functional-enrichment-in-pan -p Nitrosomonadaceae/Nitrosomonadaceae
                                           --functional-occurrence-table-output FUNC_OCCURENCE_KOfam-Nitrosomonadaceae-limited-Genus.txt                                         
 ```
 
-#### using *blastp*
+#### Using *blastp*
 
 ```bash
 conda activate anvio
@@ -256,7 +256,7 @@ for f in *.edittest.txt; do sed -e '/^Sbjct/s/^Sbjct.......//' -e 's/.....$//' $
 
 ```
 
-#### based on KEGG annotations
+#### Based on KEGG annotations using *seqkit*
 
 I do this step in R after wrangling all of the kofam_scan, GhostKOALA, or eggnog gene annotation data.
 
@@ -299,6 +299,9 @@ annot.dat %>%
 Then I use seqkit to grab the faa sequences I want. I generally have a concatenated file of all the MAG genes (the same one I annotate the genes of in fact!)
 
 ```bash
+conda create --prefix /PATH/TO/CONDAENVS/seqkit -c bioconda -c defaults seqkit
+conda activate /PATH/TO/CONDAENVS/seqkit
+
 seqkit grep -i -f MAGs_amoA_gene_headers.txt MAGs.proteins.faa > amoA_MAGs.faa
 ```
 
