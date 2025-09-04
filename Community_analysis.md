@@ -1,6 +1,6 @@
 # Microbial community analyis
 
-This is a general overview of the types of community analyses I have done on non-redundant MAG datasets. I use R and rely heavily on the packages [phyloseq](https://joey711.github.io/phyloseq/), [vegan](https://github.com/vegandevs/vegan), [ggplot2](https://ggplot2.tidyverse.org/) and the rest of the  [tidyverse](https://www.tidyverse.org/.
+This is a general overview of the types of community analyses I have done on non-redundant MAG datasets. I use R and rely heavily on the packages [phyloseq](https://joey711.github.io/phyloseq/), [vegan](https://github.com/vegandevs/vegan), [ggplot2](https://ggplot2.tidyverse.org/) and the rest of the  [tidyverse](https://www.tidyverse.org/).
 
 ### Considerations
 
@@ -13,8 +13,6 @@ This is a general overview of the types of community analyses I have done on non
 3. MAGs are incomplete and represent a population of very closely related organisms so, again, grain of salt.
 
 ## Get all the data you need into R
-
-### *Wrangling all of the data in R* 
 
 Here are just a few examples of how I start putting together all of the MAG and metagenome metadata. I am usually working on the computing cluster for all of the data processing steps and then move the output files to my personal computer to work on.
 
