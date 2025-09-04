@@ -256,7 +256,7 @@ for f in *.edittest.txt; do sed -e '/^Sbjct/s/^Sbjct.......//' -e 's/.....$//' $
 
 ```
 
-#### Based on KEGG annotations using *seqkit*
+#### Based on KEGG annotations using [SeqKit](https://bioinf.shenwei.me/seqkit/)
 
 I do this step in R after wrangling all of the kofam_scan, GhostKOALA, or eggnog gene annotation data.
 
@@ -296,7 +296,7 @@ annot.dat %>%
   write.csv("data/MAGs_amoA_gene_headers.txt", quote = FALSE, row.names = FALSE)
 ```
 
-Then I use seqkit to grab the faa sequences I want. I generally have a concatenated file of all the MAG genes (the same one I annotate the genes of in fact!)
+Then I use [SeqKit](https://bioinf.shenwei.me/seqkit/) to grab the faa sequences I want. I generally have a concatenated file of all the MAG genes (the same one I annotate the genes of in fact!)
 
 ```bash
 conda create --prefix /PATH/TO/CONDAENVS/seqkit -c bioconda -c defaults seqkit
