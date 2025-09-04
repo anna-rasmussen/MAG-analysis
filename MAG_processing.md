@@ -85,7 +85,7 @@ conda activate /PATH/TO/CONDAENV/metawrap #checkM is installed with this program
 bin_dir='/PATH/TO/MY_SAMPLING_SITE/MAGs_all' 
 checkm lineage_wf -t 24 -x fa --pplacer_threads 2 --file checkM_output.txt --tab_table $bin_dir checkM_MAGs_all
 echo done
-```bash
+```
 
 
 Here is a *metaWRAP* example:
